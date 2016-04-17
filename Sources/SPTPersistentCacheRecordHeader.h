@@ -18,27 +18,34 @@ typedef NS_ENUM(NSUInteger, SPTPersistentCacheRecordHeaderRevision) {
 };
 
 /**
+ * The latest header's version.
+ */
+FOUNDATION_EXPORT const SPTPersistentCacheRecordHeaderRevision SPTPersistentCacheRecordHeaderCurrentRevision;
+
+/**
  * The record header making up the front of the file index
  */
 @interface SPTPersistentCacheRecordHeader : NSObject <SPTPersistentCacheFileAttributesCoding>
 
 // Version 1:
-@property (nonatomic, assign, readonly) uint32_t refCount;
-@property (nonatomic, assign, readonly) uint32_t reserved1;
-@property (nonatomic, assign, readonly) uint64_t ttl;
-@property (nonatomic, assign, readonly) uint64_t updateTimeSec; // Time of last update i.e. creation or access. uses unix time scale.
-@property (nonatomic, assign, readonly) uint64_t payloadSizeBytes;
-@property (nonatomic, assign, readonly) uint64_t reserved2;
-@property (nonatomic, assign, readonly) uint32_t reserved3;
-@property (nonatomic, assign, readonly) uint32_t reserved4;
-@property (nonatomic, assign, readonly) uint32_t flags; // See SPTPersistentRecordHeaderFlags
+@property (nonatomic, assign) uint32_t refCount;
+@property (nonatomic, assign) uint32_t reserved1;
+@property (nonatomic, assign) uint64_t ttl;
+@property (nonatomic, assign) uint64_t updateTimeSec; // Time of last update i.e. creation or access. uses unix time scale.
+@property (nonatomic, assign) uint64_t payloadSizeBytes;
+@property (nonatomic, assign) uint64_t reserved2;
+@property (nonatomic, assign) uint32_t reserved3;
+@property (nonatomic, assign) uint32_t reserved4;
+@property (nonatomic, assign) uint32_t flags; // See SPTPersistentRecordHeaderFlags
 @property (nonatomic, assign, readonly) uint32_t crc;
-@property (nonatomic, assign, readonly) uint32_t revision;
+@property (nonatomic, assign) uint32_t revision;
 
 - (nullable instancetype)init NS_UNAVAILABLE;
 + (nullable instancetype)new NS_UNAVAILABLE;
 
 - (nullable instancetype)initWithLegacyHeader:(SPTPersistentCacheRecordLegacyHeader*)header;
+
+- (instancetype)initWithTTL:(uint64_t)ttl payloadSize:(uint64_t)payloadSize updateTime:(uint64_t)updateTime isLocked:(BOOL)isLocked;
 
 @end
 

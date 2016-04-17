@@ -33,6 +33,7 @@
 #import "SPTPersistentCachePosixWrapper.h"
 #import "SPTPersistentCacheRecordHeaderArchiver.h"
 #import "SPTPersistentCacheRecordHeader.h"
+#import "SPTPersistentCacheRecordRecordHeader.h"
 
 #include <sys/stat.h>
 
@@ -494,12 +495,11 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
     // If data ttl == 0 we update access time
     if (ttl == 0) {
         header.updateTimeSec = spt_uint64rint(self.currentDateTimeInterval);
-        header.crc = SPTPersistentCacheCalculateHeaderCRC(&header);
 
         // Write back with updated access attributes
         NSError* headerSetError = nil;
-        [self saveHeader:header toFileAtPath:filePath error:&headerSetError];
-        if (headerSetError != nil) {
+        BOOL success = [self saveHeader:header toFileAtPath:filePath error:&headerSetError];
+        if (!success) {
             [self debugOutput:@"PersistentDataCache: Error writing back record:%@ error:%@", filePath.lastPathComponent, [headerSetError localizedDescription]];
         } else {
 #ifdef DEBUG_OUTPUT_ENABLED
@@ -521,6 +521,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
 - (NSData*)payloadFromRawData:(NSData*)data
 {
     NSMutableData* rawData = [data mutableCopy];
+    // If the record has legacy header - truncate it!
     SPTPersistentCacheRecordLegacyHeader *legacyHeader = SPTPersistentCacheGetHeaderFromData(rawData.mutableBytes, rawData.length);
     BOOL hasLegacyHeader = legacyHeader != NULL && SPTPersistentCacheCheckValidHeader(legacyHeader) == nil;
     return hasLegacyHeader ? [data subdataWithRange:NSMakeRange(SPTPersistentCacheRecordHeaderSize, data.length - SPTPersistentCacheRecordHeaderSize)] : data;
@@ -549,11 +550,9 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
         [self dispatchError:error result:SPTPersistentCacheResponseCodeOperationError callback:callback onQueue:queue];
     } else {
         const NSUInteger payloadLength = [data length];
-        SPTPersistentCacheRecordLegacyHeader header = SPTPersistentCacheRecordHeaderMake(ttl,
-                                                                                   payloadLength,
-                                                                                   spt_uint64rint(self.currentDateTimeInterval),
-                                                                                   isLocked);
-        NSError* headerSetError = SPTPersistentCacheSetHeaderForFileWithPath(filePath, &header);
+        SPTPersistentCacheRecordRecordHeader *header = [[SPTPersistentCacheRecordRecordHeader alloc] initWithTTL:ttl payloadSize:payloadLength updateTime:spt_uint64rint(self.currentDateTimeInterval) isLocked:isLocked];
+        NSError* headerSetError = nil;
+        [self saveHeader:header toFileAtPath:filePath error:&headerSetError];
         if (headerSetError != nil) {
             [self debugOutput:@"PersistentDataCache: Error writting header at file path:%@ , error:%@", filePath, [headerSetError localizedDescription]];
             [self removeDataForKeysSync:@[key]];
@@ -599,12 +598,11 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
                                                            record:nil];
     }
 
+    uint32_t oldCRC = header.crc;
+
     modifyBlock(header);
 
-    if (needWriteBack) {
-
-        uint32_t oldCRC = header.crc;
-        header.crc = SPTPersistentCacheCalculateHeaderCRC(&header);
+    if (needWriteBack && oldCRC != header.crc) {
 
         // If nothing has changed we do nothing then
         if (oldCRC == header.crc) {
@@ -614,8 +612,8 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
         }
 
         NSError* headerSetError = nil;
-        [self saveHeader:header toFileAtPath:filePath error:&headerSetError];
-        if (headerSetError != nil) {
+        BOOL success = [self saveHeader:header toFileAtPath:filePath error:&headerSetError];
+        if (!success) {
             [self debugOutput:@"PersistentDataCache: Error writting header at file path:%@ , error:%@", filePath, [headerSetError localizedDescription]];
             return [[SPTPersistentCacheResponse alloc] initWithResult:SPTPersistentCacheResponseCodeOperationError
                                                                 error:headerSetError
@@ -630,7 +628,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
 
 - (SPTPersistentCacheRecordHeader*)loadHeaderFromFileAtPath:(NSString*)filePath error:(NSError * __autoreleasing *)error
 {
-    SPTPersistentCacheRecordHeader* header = [SPTPersistentCacheFileAttributesArchiver unarchivedCacheRecordHeaderFromFileAtPath:filePath];
+    SPTPersistentCacheRecordHeader* header = [SPTPersistentCacheFileAttributesArchiver unarchiveCacheRecordHeaderFromFileAtPath:filePath];
     if (!header) {
         // try to load the legacy header
         NSFileHandle* fileHandle = [NSFileHandle fileHandleForReadingAtPath:filePath];
@@ -658,10 +656,12 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
 
 - (BOOL)saveHeader:(SPTPersistentCacheRecordHeader*)header toFileAtPath:(NSString*)filePath error:(NSError * __autoreleasing *)error
 {
-    BOOL success = [SPTPersistentCacheFileAttributesArchiver archivedCacheRecordHeader:header toFileAtPath:filePath];
+    BOOL success = [SPTPersistentCacheFileAttributesArchiver archiveCacheRecordHeader:header toFileAtPath:filePath];
     if (!success && error) {
         *error = [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorFileAttributeOperationFail];
+        return NO;
     }
+    return YES;
 }
 
 /**

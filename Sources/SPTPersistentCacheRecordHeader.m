@@ -7,6 +7,9 @@
 //
 
 #import "SPTPersistentCacheRecordHeader.h"
+#import "crc32iso3309.h"
+
+const SPTPersistentCacheRecordHeaderRevision SPTPersistentCacheRecordHeaderCurrentRevision = SPTPersistentCacheRecordHeaderRevision1;
 
 @implementation SPTPersistentCacheRecordHeader
 
@@ -23,8 +26,22 @@
         _reserved3 = header->reserved3;
         _reserved4 = header->reserved4;
         _flags = header->flags;
-        _crc = header->crc; // update CRC here!
-        _revision = SPTPersistentCacheRecordHeaderRevisionLegacy;
+        _revision = SPTPersistentCacheRecordHeaderCurrentRevision;
+        _crc = [self calculateCRC32];
+    }
+    return self;
+}
+
+- (instancetype)initWithTTL:(uint64_t)ttl payloadSize:(uint64_t)payloadSize updateTime:(uint64_t)updateTime isLocked:(BOOL)isLocked
+{
+    self = [super init];
+    if (self) {
+        _refCount = (isLocked ? 1 : 0);
+        _ttl = ttl;
+        _payloadSizeBytes = payloadSize;
+        _updateTimeSec = updateTime;
+        _revision = SPTPersistentCacheRecordHeaderCurrentRevision;
+        _crc = [self calculateCRC32];
     }
     return self;
 }
@@ -63,6 +80,15 @@
         _revision = [aDecoder decodeUInt32ForKey:NSStringFromSelector(@selector(revision))];
     }
     return self;
+}
+
+#pragma mark - Private
+
+- (uint32_t) calculateCRC32 {
+    [NSKeyedArchiver archivedDataWithRootObject:@(self.ttl)];
+    NSMutableData* rawHeader = [NSMutableData data];
+    [rawHeader appendBytes:&self.ttl length:sizeof(self.ttl)];
+    return spt_crc32((const uint8_t *)[rawHeader bytes], rawHeader.length);
 }
 
 @end

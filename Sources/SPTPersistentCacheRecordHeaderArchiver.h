@@ -37,8 +37,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface SPTPersistentCacheFileAttributesArchiver : NSObject
 
-+ (BOOL)archivedCacheRecordHeader:(SPTPersistentCacheRecordHeader*)header toFileAtPath:(NSString*)filePath;
-+ (nullable SPTPersistentCacheRecordHeader*)unarchivedCacheRecordHeaderFromFileAtPath:(NSString*)filePath;
++ (BOOL)archiveCacheRecordHeader:(SPTPersistentCacheRecordHeader*)header toFileAtPath:(NSString*)filePath;
++ (nullable SPTPersistentCacheRecordHeader*)unarchiveCacheRecordHeaderFromFileAtPath:(NSString*)filePath;
 
 @end
 

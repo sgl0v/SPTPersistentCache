@@ -68,14 +68,14 @@ static NSString* const SPTPersistentCacheHeaderKeyPrefix = @"com.spotify.cache."
 
 @implementation SPTPersistentCacheFileAttributesArchiver
 
-+ (BOOL)archivedCacheRecordHeader:(SPTPersistentCacheRecordHeader*)header toFileAtPath:(NSString*)filePath
++ (BOOL)archiveCacheRecordHeader:(SPTPersistentCacheRecordHeader*)header toFileAtPath:(NSString*)filePath
 {
     SPTPersistentCacheFileAttributesCoder* coder = [[SPTPersistentCacheFileAttributesCoder alloc] initWithFilePath:filePath];
     [header encodeWithCoder:coder];
     return !coder.didFail;
 }
 
-+ (SPTPersistentCacheRecordHeader*)unarchivedCacheRecordHeaderFromFileAtPath:(NSString*)filePath
++ (SPTPersistentCacheRecordHeader*)unarchiveCacheRecordHeaderFromFileAtPath:(NSString*)filePath
 {
     SPTPersistentCacheFileAttributesCoder* decoder = [[SPTPersistentCacheFileAttributesCoder alloc] initWithFilePath:filePath];
     SPTPersistentCacheRecordHeader* header = [[SPTPersistentCacheRecordHeader alloc] initWithCoder:decoder];
