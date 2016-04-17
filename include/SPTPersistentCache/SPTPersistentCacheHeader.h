@@ -40,7 +40,7 @@ typedef NS_ENUM(NSInteger, SPTPersistentCacheRecordHeaderFlags) {
 /**
  * The record header making up the front of the file index
  */
-typedef struct SPTPersistentCacheRecordHeader {
+typedef struct SPTPersistentCacheRecordLegacyHeader {
     // Version 1:
     SPTPersistentCacheMagicType magic;
     uint32_t headerSize;
@@ -56,7 +56,7 @@ typedef struct SPTPersistentCacheRecordHeader {
     uint32_t flags;         // See SPTPersistentRecordHeaderFlags
     uint32_t crc;
     // Version 2: Add fields here if required
-} SPTPersistentCacheRecordHeader;
+} SPTPersistentCacheRecordLegacyHeader;
 
 /**
  * The value to use for the magic number (redundancy check).
@@ -72,36 +72,36 @@ FOUNDATION_EXPORT const size_t SPTPersistentCacheRecordHeaderSize;
 /**
  * Creates a record header from a supply of parameters.
  */
-FOUNDATION_EXPORT SPTPersistentCacheRecordHeader SPTPersistentCacheRecordHeaderMake(uint64_t ttl,
+FOUNDATION_EXPORT SPTPersistentCacheRecordLegacyHeader SPTPersistentCacheRecordHeaderMake(uint64_t ttl,
                                                                                     uint64_t payloadSize,
                                                                                     uint64_t updateTime,
                                                                                     BOOL isLocked);
 /**
  * Function return pointer to header if there are enough data otherwise NULL.
  */
-FOUNDATION_EXPORT SPTPersistentCacheRecordHeader *SPTPersistentCacheGetHeaderFromData(void *data, size_t size);
+FOUNDATION_EXPORT SPTPersistentCacheRecordLegacyHeader *SPTPersistentCacheGetHeaderFromData(void *data, size_t size);
 /**
  * Function loads a header for a given file.
  * @return nil if everything is ok, NSError object otherwise.
  */
-FOUNDATION_EXPORT NSError* SPTPersistentCacheGetHeaderFromFileWithPath(NSString *filepath, SPTPersistentCacheRecordHeader *header);
+FOUNDATION_EXPORT NSError* SPTPersistentCacheGetHeaderFromFileWithPath(NSString *filepath, SPTPersistentCacheRecordLegacyHeader *header);
 /**
  * Function saves a header for a given file.
  * @return nil if everything is ok, NSError object otherwise.
  */
-FOUNDATION_EXPORT NSError* SPTPersistentCacheSetHeaderForFileWithPath(NSString *filepath, const SPTPersistentCacheRecordHeader *header);
+FOUNDATION_EXPORT NSError* SPTPersistentCacheSetHeaderForFileWithPath(NSString *filepath, const SPTPersistentCacheRecordLegacyHeader *header);
 
 /**
  * Function validates header accoring to predefined rules used in production code.
  * @return -1 if everything is ok, otherwise one of codes from SPTPersistentCacheLoadingError.
  */
-FOUNDATION_EXPORT int /*SPTPersistentCacheLoadingError*/ SPTPersistentCacheValidateHeader(const SPTPersistentCacheRecordHeader *header);
+FOUNDATION_EXPORT int /*SPTPersistentCacheLoadingError*/ SPTPersistentCacheValidateHeader(const SPTPersistentCacheRecordLegacyHeader *header);
 /**
  * Function returns calculated CRC for current header.
  */
-FOUNDATION_EXPORT uint32_t SPTPersistentCacheCalculateHeaderCRC(const SPTPersistentCacheRecordHeader *header);
+FOUNDATION_EXPORT uint32_t SPTPersistentCacheCalculateHeaderCRC(const SPTPersistentCacheRecordLegacyHeader *header);
 /**
  * Checks that a given header is valid.
  * @return nil if everything is ok, otherwise will return an instance of NSError.
  */
-FOUNDATION_EXPORT NSError * SPTPersistentCacheCheckValidHeader(SPTPersistentCacheRecordHeader *header);
+FOUNDATION_EXPORT NSError * SPTPersistentCacheCheckValidHeader(SPTPersistentCacheRecordLegacyHeader *header);

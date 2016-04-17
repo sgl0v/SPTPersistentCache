@@ -26,13 +26,13 @@
 #include <sys/xattr.h>
 
 const SPTPersistentCacheMagicType SPTPersistentCacheMagicValue = 0x46545053; // SPTF
-const size_t SPTPersistentCacheRecordHeaderSize = sizeof(SPTPersistentCacheRecordHeader);
+const size_t SPTPersistentCacheRecordHeaderSize = sizeof(SPTPersistentCacheRecordLegacyHeader);
 static NSString* const SPTPersistentCacheRecordHeaderAttributeName = @"com.spotify.cache";
 static int const SPTPersistentCacheHeaderInvalidResult = -1;
 
-_Static_assert(sizeof(SPTPersistentCacheRecordHeader) == 64,
+_Static_assert(sizeof(SPTPersistentCacheRecordLegacyHeader) == 64,
                "Struct SPTPersistentCacheRecordHeader has to be packed without padding");
-_Static_assert(sizeof(SPTPersistentCacheRecordHeader) % 4 == 0,
+_Static_assert(sizeof(SPTPersistentCacheRecordLegacyHeader) % 4 == 0,
                "Struct size has to be multiple of 4");
 
 NS_INLINE BOOL SPTPersistentCachePointerMagicAlignCheck(const void *ptr)
@@ -42,15 +42,15 @@ NS_INLINE BOOL SPTPersistentCachePointerMagicAlignCheck(const void *ptr)
     return (v % align == 0);
 }
 
-SPTPersistentCacheRecordHeader SPTPersistentCacheRecordHeaderMake(uint64_t ttl,
+SPTPersistentCacheRecordLegacyHeader SPTPersistentCacheRecordHeaderMake(uint64_t ttl,
                                                                   uint64_t payloadSize,
                                                                   uint64_t updateTime,
                                                                   BOOL isLocked)
 
 {
-    SPTPersistentCacheRecordHeader dummy;
+    SPTPersistentCacheRecordLegacyHeader dummy;
     memset(&dummy, 0, SPTPersistentCacheRecordHeaderSize);
-    SPTPersistentCacheRecordHeader *header = &dummy;
+    SPTPersistentCacheRecordLegacyHeader *header = &dummy;
     
     header->magic = SPTPersistentCacheMagicValue;
     header->headerSize = (uint32_t)SPTPersistentCacheRecordHeaderSize;
@@ -63,16 +63,16 @@ SPTPersistentCacheRecordHeader SPTPersistentCacheRecordHeaderMake(uint64_t ttl,
     return dummy;
 }
 
-SPTPersistentCacheRecordHeader *SPTPersistentCacheGetHeaderFromData(void *data, size_t size)
+SPTPersistentCacheRecordLegacyHeader *SPTPersistentCacheGetHeaderFromData(void *data, size_t size)
 {
     if (size < SPTPersistentCacheRecordHeaderSize) {
         return NULL;
     }
 
-    return (SPTPersistentCacheRecordHeader *)data;
+    return (SPTPersistentCacheRecordLegacyHeader *)data;
 }
 
-NSError* SPTPersistentCacheGetHeaderFromFileWithPath(NSString *filePath, SPTPersistentCacheRecordHeader *header)
+NSError* SPTPersistentCacheGetHeaderFromFileWithPath(NSString *filePath, SPTPersistentCacheRecordLegacyHeader *header)
 {
     memset(header, 0, SPTPersistentCacheRecordHeaderSize);
     ssize_t size = getxattr([filePath UTF8String], [SPTPersistentCacheRecordHeaderAttributeName UTF8String], header, SPTPersistentCacheRecordHeaderSize, 0, 0);
@@ -80,7 +80,7 @@ NSError* SPTPersistentCacheGetHeaderFromFileWithPath(NSString *filePath, SPTPers
         // try to load the legacy header. the fileHandle object uses file descriptor under the hood and responsible for closing it on deallocation.
         NSFileHandle* fileHandle = [NSFileHandle fileHandleForReadingAtPath:filePath];
         NSMutableData* rawData = [[fileHandle readDataOfLength:SPTPersistentCacheRecordHeaderSize] mutableCopy];
-        SPTPersistentCacheRecordHeader *legacyHeader = SPTPersistentCacheGetHeaderFromData(rawData.mutableBytes, rawData.length);
+        SPTPersistentCacheRecordLegacyHeader *legacyHeader = SPTPersistentCacheGetHeaderFromData(rawData.mutableBytes, rawData.length);
         // If not enough data to cast to header, its not the file we can process
         if (legacyHeader == NULL) {
             return [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorNotEnoughDataToGetHeader];
@@ -90,7 +90,7 @@ NSError* SPTPersistentCacheGetHeaderFromFileWithPath(NSString *filePath, SPTPers
     return SPTPersistentCacheCheckValidHeader(header);
 }
 
-NSError* SPTPersistentCacheSetHeaderForFileWithPath(NSString *filepath, const SPTPersistentCacheRecordHeader *header) {
+NSError* SPTPersistentCacheSetHeaderForFileWithPath(NSString *filepath, const SPTPersistentCacheRecordLegacyHeader *header) {
     int res = setxattr([filepath UTF8String], [SPTPersistentCacheRecordHeaderAttributeName UTF8String], header, SPTPersistentCacheRecordHeaderSize, 0, 0);
     if (res == SPTPersistentCacheHeaderInvalidResult) {
         return [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorFileAttributeOperationFail];
@@ -98,7 +98,7 @@ NSError* SPTPersistentCacheSetHeaderForFileWithPath(NSString *filepath, const SP
     return nil;
 }
 
-int /*SPTPersistentCacheLoadingError*/ SPTPersistentCacheValidateHeader(const SPTPersistentCacheRecordHeader *header)
+int /*SPTPersistentCacheLoadingError*/ SPTPersistentCacheValidateHeader(const SPTPersistentCacheRecordLegacyHeader *header)
 {
     if (header == NULL) {
         return SPTPersistentCacheLoadingErrorInternalInconsistency;
@@ -128,7 +128,7 @@ int /*SPTPersistentCacheLoadingError*/ SPTPersistentCacheValidateHeader(const SP
     return -1;
 }
 
-NSError * SPTPersistentCacheCheckValidHeader(SPTPersistentCacheRecordHeader *header)
+NSError * SPTPersistentCacheCheckValidHeader(SPTPersistentCacheRecordLegacyHeader *header)
 {
     int code = SPTPersistentCacheValidateHeader(header);
     if (code == -1) { // No error
@@ -138,7 +138,7 @@ NSError * SPTPersistentCacheCheckValidHeader(SPTPersistentCacheRecordHeader *hea
     return [NSError spt_persistentDataCacheErrorWithCode:code];
 }
 
-uint32_t SPTPersistentCacheCalculateHeaderCRC(const SPTPersistentCacheRecordHeader *header)
+uint32_t SPTPersistentCacheCalculateHeaderCRC(const SPTPersistentCacheRecordLegacyHeader *header)
 {
     if (header == NULL) {
         return 0;

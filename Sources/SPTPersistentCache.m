@@ -40,7 +40,7 @@
 //#define DEBUG_OUTPUT_ENABLED
 
 typedef SPTPersistentCacheResponse* (^SPTPersistentCacheFileProcessingBlockType)(int filedes);
-typedef void (^SPTPersistentCacheRecordHeaderGetCallbackType)(SPTPersistentCacheRecordHeader *header);
+typedef void (^SPTPersistentCacheRecordHeaderGetCallbackType)(SPTPersistentCacheRecordLegacyHeader *header);
 
 NSString *const SPTPersistentCacheErrorDomain = @"persistent.cache.error";
 static NSString * const SPTDataCacheFileNameKey = @"SPTDataCacheFileNameKey";
@@ -146,7 +146,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
             NSString *filePath = [self.dataCacheFileManager pathForKey:key];
 
             // WARNING: We may skip return result here bcuz in that case we will skip the key as invalid
-            [self alterHeaderForFileAtPath:filePath withBlock:^(SPTPersistentCacheRecordHeader *header) {
+            [self alterHeaderForFileAtPath:filePath withBlock:^(SPTPersistentCacheRecordLegacyHeader *header) {
                 // Satisfy Req.#1.2
                 if ([self isDataCanBeReturnedWithHeader:header]) {
                     [keysToConsider addObject:key];
@@ -224,7 +224,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
         BOOL __block expired = NO;
 
         SPTPersistentCacheResponse *response = [self alterHeaderForFileAtPath:filePath
-                                                                    withBlock:^(SPTPersistentCacheRecordHeader *header) {
+                                                                    withBlock:^(SPTPersistentCacheRecordLegacyHeader *header) {
                                                                         // Satisfy Req.#1.2 and Req.#1.3
                                                                         if (![self isDataCanBeReturnedWithHeader:header]) {
                                                                             expired = YES;
@@ -280,7 +280,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
             NSString *filePath = [self.dataCacheFileManager pathForKey:key];
             BOOL __block expired = NO;
             SPTPersistentCacheResponse *response = [self alterHeaderForFileAtPath:filePath
-                                                                        withBlock:^(SPTPersistentCacheRecordHeader *header) {
+                                                                        withBlock:^(SPTPersistentCacheRecordLegacyHeader *header) {
                                                                             // Satisfy Req.#1.2
                                                                             if ([self isDataExpiredWithHeader:header]) {
                                                                                 expired = YES;
@@ -320,7 +320,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
         for (NSString *key in keys) {
             NSString *filePath = [self.dataCacheFileManager pathForKey:key];
             SPTPersistentCacheResponse *response = [self alterHeaderForFileAtPath:filePath
-                                                                        withBlock:^(SPTPersistentCacheRecordHeader *header){
+                                                                        withBlock:^(SPTPersistentCacheRecordLegacyHeader *header){
                                                                             if (header->refCount > 0) {
                                                                                 --header->refCount;
                                                                             } else {
@@ -398,7 +398,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
                 NSString *filePath = [self.dataCacheFileManager pathForKey:key];
                 BOOL __block locked = NO;
                 // WARNING: We may skip return result here bcuz in that case we will not count file as locked
-                [self alterHeaderForFileAtPath:filePath withBlock:^(SPTPersistentCacheRecordHeader *header) {
+                [self alterHeaderForFileAtPath:filePath withBlock:^(SPTPersistentCacheRecordLegacyHeader *header) {
                     locked = header->refCount > 0;
                 } writeBack:NO complain:YES];
                 if (locked) {
@@ -433,7 +433,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
         return;
     }
     // File exist
-    SPTPersistentCacheRecordHeader header;
+    SPTPersistentCacheRecordLegacyHeader header;
     NSError *headerError = SPTPersistentCacheGetHeaderFromFileWithPath(filePath, &header);
     if (headerError != nil) {
         [self dispatchError:headerError
@@ -518,7 +518,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
 - (NSData*)payloadFromRawData:(NSData*)data
 {
     NSMutableData* rawData = [data mutableCopy];
-    SPTPersistentCacheRecordHeader *legacyHeader = SPTPersistentCacheGetHeaderFromData(rawData.mutableBytes, rawData.length);
+    SPTPersistentCacheRecordLegacyHeader *legacyHeader = SPTPersistentCacheGetHeaderFromData(rawData.mutableBytes, rawData.length);
     BOOL hasLegacyHeader = legacyHeader != NULL && SPTPersistentCacheCheckValidHeader(legacyHeader) == nil;
     return hasLegacyHeader ? [data subdataWithRange:NSMakeRange(SPTPersistentCacheRecordHeaderSize, data.length - SPTPersistentCacheRecordHeaderSize)] : data;
 }
@@ -546,7 +546,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
         [self dispatchError:error result:SPTPersistentCacheResponseCodeOperationError callback:callback onQueue:queue];
     } else {
         const NSUInteger payloadLength = [data length];
-        SPTPersistentCacheRecordHeader header = SPTPersistentCacheRecordHeaderMake(ttl,
+        SPTPersistentCacheRecordLegacyHeader header = SPTPersistentCacheRecordHeaderMake(ttl,
                                                                                    payloadLength,
                                                                                    spt_uint64rint(self.currentDateTimeInterval),
                                                                                    isLocked);
@@ -587,7 +587,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
         return [[SPTPersistentCacheResponse alloc] initWithResult:SPTPersistentCacheResponseCodeNotFound error:nil record:nil];
 
     }
-    SPTPersistentCacheRecordHeader header;
+    SPTPersistentCacheRecordLegacyHeader header;
     NSError *headerGetError = SPTPersistentCacheGetHeaderFromFileWithPath(filePath, &header);
     if (headerGetError != nil) {
         [self debugOutput:@"PersistentDataCache: Failed to read the header of file path:%@ , error:%@", filePath, [headerGetError localizedDescription]];
@@ -627,7 +627,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
 /**
  * Only this method check data expiration. Past check is also supported.
  */
-- (BOOL)isDataExpiredWithHeader:(SPTPersistentCacheRecordHeader *)header
+- (BOOL)isDataExpiredWithHeader:(SPTPersistentCacheRecordLegacyHeader *)header
 {
     assert(header != nil);
     uint64_t ttl = header->ttl;
@@ -644,7 +644,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
 /**
  * Methos checks whether data can be given to caller with accordance to API.
  */
-- (BOOL)isDataCanBeReturnedWithHeader:(SPTPersistentCacheRecordHeader *)header
+- (BOOL)isDataCanBeReturnedWithHeader:(SPTPersistentCacheRecordLegacyHeader *)header
 {
     return !([self isDataExpiredWithHeader:header] && header->refCount == 0);
 }
@@ -679,7 +679,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
                 BOOL __block needRemove = NO;
                 int __block reason = 0;
                 // WARNING: We may skip return result here bcuz in that case we won't remove file we do not know what is it
-                [self alterHeaderForFileAtPath:filePath withBlock:^(SPTPersistentCacheRecordHeader *header) {
+                [self alterHeaderForFileAtPath:filePath withBlock:^(SPTPersistentCacheRecordLegacyHeader *header) {
                     if (forceExpire && forceLocked) {
                         // delete all
                         needRemove = YES;
@@ -822,7 +822,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
 
                 // WARNING: We may skip return result here bcuz in that case we will remove unknown file as unlocked trash
                 [self alterHeaderForFileAtPath:[NSString stringWithUTF8String:theURL.fileSystemRepresentation]
-                                     withBlock:^(SPTPersistentCacheRecordHeader *header) {
+                                     withBlock:^(SPTPersistentCacheRecordLegacyHeader *header) {
                                          locked = (header->refCount > 0);
                                      } writeBack:NO
                                       complain:YES];

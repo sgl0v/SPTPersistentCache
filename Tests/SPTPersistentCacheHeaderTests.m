@@ -57,7 +57,7 @@ static NSString* const SPTCacheRecordFileName = @"cache.record";
 {
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wcast-align"
-    int headerValidationResult = SPTPersistentCacheValidateHeader((SPTPersistentCacheRecordHeader *)3);
+    int headerValidationResult = SPTPersistentCacheValidateHeader((SPTPersistentCacheRecordLegacyHeader *)3);
     #pragma mark diagnostic pop
     XCTAssertEqual(headerValidationResult, SPTPersistentCacheLoadingErrorHeaderAlignmentMismatch);
 }
@@ -84,7 +84,7 @@ static NSString* const SPTCacheRecordFileName = @"cache.record";
     BOOL isLocked = YES;
     
     
-    SPTPersistentCacheRecordHeader header = SPTPersistentCacheRecordHeaderMake(ttl,
+    SPTPersistentCacheRecordLegacyHeader header = SPTPersistentCacheRecordHeaderMake(ttl,
                                                                                payloadSize,
                                                                                updateTime,
                                                                                isLocked);
@@ -108,11 +108,11 @@ static NSString* const SPTCacheRecordFileName = @"cache.record";
     // GIVEN
     NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:SPTCacheRecordFileName];
     [self removeFileAtPath:filePath];
-    SPTPersistentCacheRecordHeader header = [self dummyHeader];
+    SPTPersistentCacheRecordLegacyHeader header = [self dummyHeader];
     XCTAssertNil([self createRecordAtPath:filePath withHeader:&header]);
 
     // WHEN
-    SPTPersistentCacheRecordHeader loadedHeader;
+    SPTPersistentCacheRecordLegacyHeader loadedHeader;
     NSError* error = SPTPersistentCacheGetHeaderFromFileWithPath(filePath, &loadedHeader);
 
     // THEN
@@ -139,7 +139,7 @@ static NSString* const SPTCacheRecordFileName = @"cache.record";
     NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:SPTCacheRecordFileName];
 
     // WHEN
-    SPTPersistentCacheRecordHeader loadedHeader;
+    SPTPersistentCacheRecordLegacyHeader loadedHeader;
     NSError* error = SPTPersistentCacheGetHeaderFromFileWithPath(filePath, &loadedHeader);
 
     // THEN
@@ -151,14 +151,14 @@ static NSString* const SPTCacheRecordFileName = @"cache.record";
     // GIVEN
     NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:SPTCacheRecordFileName];
     [self removeFileAtPath:filePath];
-    SPTPersistentCacheRecordHeader header = [self dummyHeader];
+    SPTPersistentCacheRecordLegacyHeader header = [self dummyHeader];
     NSData* payload = [[NSMutableData dataWithLength:header.payloadSizeBytes] copy];
     NSMutableData* rawData = [NSMutableData dataWithBytes:&header length:SPTPersistentCacheRecordHeaderSize];
     [rawData appendData:payload];
     XCTAssertTrue([[NSFileManager defaultManager] createFileAtPath:filePath contents:rawData attributes:nil]);
 
     // WHEN
-    SPTPersistentCacheRecordHeader loadedHeader;
+    SPTPersistentCacheRecordLegacyHeader loadedHeader;
     NSError* error = SPTPersistentCacheGetHeaderFromFileWithPath(filePath, &loadedHeader);
 
     // THEN
@@ -184,7 +184,7 @@ static NSString* const SPTCacheRecordFileName = @"cache.record";
     // GIVEN
     NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:SPTCacheRecordFileName];
     [self removeFileAtPath:filePath];
-    SPTPersistentCacheRecordHeader header = [self dummyHeader];
+    SPTPersistentCacheRecordLegacyHeader header = [self dummyHeader];
 
     // WHEN
     NSError* error = [self createRecordAtPath:filePath withHeader:&header];
@@ -201,7 +201,7 @@ static NSString* const SPTCacheRecordFileName = @"cache.record";
     NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:SPTCacheRecordFileName];
 
     // WHEN
-    SPTPersistentCacheRecordHeader loadedHeader;
+    SPTPersistentCacheRecordLegacyHeader loadedHeader;
     NSError* error = SPTPersistentCacheSetHeaderForFileWithPath(filePath, &loadedHeader);
 
     // THEN
@@ -210,7 +210,7 @@ static NSString* const SPTCacheRecordFileName = @"cache.record";
 
 #pragma mark - Private
 
-- (NSError*)createRecordAtPath:(NSString*)filePath withHeader:(SPTPersistentCacheRecordHeader*)header
+- (NSError*)createRecordAtPath:(NSString*)filePath withHeader:(SPTPersistentCacheRecordLegacyHeader*)header
 {
     NSMutableData* data = [NSMutableData dataWithLength:header->payloadSizeBytes];
 
@@ -227,7 +227,7 @@ static NSString* const SPTCacheRecordFileName = @"cache.record";
     }
 }
 
-- (SPTPersistentCacheRecordHeader)dummyHeader {
+- (SPTPersistentCacheRecordLegacyHeader)dummyHeader {
     uint64_t ttl = 64;
     uint64_t payloadSize = 400;
     uint64_t updateTime = spt_uint64rint([[NSDate date] timeIntervalSince1970]);

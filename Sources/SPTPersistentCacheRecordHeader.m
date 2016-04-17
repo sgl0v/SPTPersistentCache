@@ -33,7 +33,7 @@
     [aCoder encodeUInt32:self.reserved4 forKey:NSStringFromSelector(@selector(reserved4))];
     [aCoder encodeUInt32:self.flags forKey:NSStringFromSelector(@selector(flags))];
     [aCoder encodeUInt32:self.crc forKey:NSStringFromSelector(@selector(crc))];
-    [aCoder encodeUInt32:self.version forKey:NSStringFromSelector(@selector(version))];
+    [aCoder encodeUInt32:self.revision forKey:NSStringFromSelector(@selector(revision))];
 }
 
 - (nullable instancetype)initWithCoder:(SPTPersistentCacheFileAttributesCoder *)aDecoder
@@ -50,7 +50,7 @@
         _reserved4 = [aDecoder decodeUInt32ForKey:NSStringFromSelector(@selector(reserved4))];
         _flags = [aDecoder decodeUInt32ForKey:NSStringFromSelector(@selector(flags))];
         _crc = [aDecoder decodeUInt32ForKey:NSStringFromSelector(@selector(crc))];
-        _version = [aDecoder decodeUInt32ForKey:NSStringFromSelector(@selector(version))];
+        _revision = [aDecoder decodeUInt32ForKey:NSStringFromSelector(@selector(revision))];
     }
     return self;
 }
