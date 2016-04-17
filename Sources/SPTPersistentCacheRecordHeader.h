@@ -7,13 +7,14 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "SPTPersistentCacheRecordHeaderArchiver.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 /**
  * The record header making up the front of the file index
  */
-@interface SPTPersistentCacheRecordHeader : NSObject
+@interface SPTPersistentCacheRecordHeader : NSObject <SPTPersistentCacheFileAttributesCoding>
 
 // Version 1:
 @property (nonatomic, assign, readonly) uint32_t headerSize;
@@ -27,8 +28,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign, readonly) uint32_t reserved4;
 @property (nonatomic, assign, readonly) uint32_t flags; // See SPTPersistentRecordHeaderFlags
 @property (nonatomic, assign, readonly) uint32_t crc;
+@property (nonatomic, assign, readonly) uint8_t version;
 
-// Version 2: Add fields here if required
+- (nullable instancetype)init NS_UNAVAILABLE;
++ (nullable instancetype)new NS_UNAVAILABLE;
+
+- (nullable instancetype)initWithLegacyHeader:(SPTPersistentCacheRecordLegacyHeader)header;
 
 @end
 
