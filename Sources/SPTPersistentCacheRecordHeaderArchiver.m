@@ -12,7 +12,7 @@
 #include <sys/xattr.h>
 
 static int const SPTPersistentCacheHeaderInvalidResult = -1;
-static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
+static NSString* const SPTPersistentCacheHeaderKeyPrefix = @"com.spotify.cache.";
 
 @interface SPTPersistentCacheFileAttributesCoder ()
 
@@ -34,21 +34,21 @@ static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
 
 - (void)encodeUInt32:(uint32_t)intv forKey:(NSString *)key
 {
-    NSString* keypath = [kHeaderNamePrefix stringByAppendingString:key];
+    NSString* keypath = [SPTPersistentCacheHeaderKeyPrefix stringByAppendingString:key];
     int res = setxattr([self.filePath UTF8String], [keypath UTF8String], &intv, sizeof(intv), 0, 0);
     self.didFail = self.didFail || res == SPTPersistentCacheHeaderInvalidResult;
 }
 
 - (void)encodeUInt64:(uint64_t)intv forKey:(NSString *)key
 {
-    NSString* keypath = [kHeaderNamePrefix stringByAppendingString:key];
+    NSString* keypath = [SPTPersistentCacheHeaderKeyPrefix stringByAppendingString:key];
     int res = setxattr([self.filePath UTF8String], [keypath UTF8String], &intv, sizeof(intv), 0, 0);
     self.didFail = self.didFail || res == SPTPersistentCacheHeaderInvalidResult;
 }
 
 - (uint32_t)decodeUInt32ForKey:(NSString *)key
 {
-    NSString* keypath = [kHeaderNamePrefix stringByAppendingString:key];
+    NSString* keypath = [SPTPersistentCacheHeaderKeyPrefix stringByAppendingString:key];
     uint32_t intv = 0;
     ssize_t size = getxattr([self.filePath UTF8String], [keypath UTF8String], &intv, sizeof(intv), 0, 0);
     self.didFail = self.didFail || size == SPTPersistentCacheHeaderInvalidResult;
@@ -57,7 +57,7 @@ static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
 
 - (uint64_t)decodeUInt64ForKey:(NSString *)key
 {
-    NSString* keypath = [kHeaderNamePrefix stringByAppendingString:key];
+    NSString* keypath = [SPTPersistentCacheHeaderKeyPrefix stringByAppendingString:key];
     uint64_t intv = 0;
     ssize_t size = getxattr([self.filePath UTF8String], [keypath UTF8String], &intv, sizeof(intv), 0, 0);
     self.didFail = self.didFail || size == SPTPersistentCacheHeaderInvalidResult;
@@ -78,7 +78,7 @@ static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
 + (SPTPersistentCacheRecordHeader*)unarchivedCacheRecordHeaderFromFileAtPath:(NSString*)filePath
 {
     SPTPersistentCacheFileAttributesCoder* decoder = [[SPTPersistentCacheFileAttributesCoder alloc] initWithFilePath:filePath];
-    SPTPersistentCacheRecordHeader* header [[SPTPersistentCacheRecordHeader alloc] initWithCoder:decoder];
+    SPTPersistentCacheRecordHeader* header = [[SPTPersistentCacheRecordHeader alloc] initWithCoder:decoder];
     return decoder.didFail ? nil : header;
 }
 
