@@ -17,7 +17,6 @@ static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
 @interface SPTPersistentCacheFileAttributesCoder ()
 
 @property (nonatomic, copy) NSString* filePath;
-@property (nonatomic, assign) NSInteger fileDescriptor;
 @property (nonatomic, strong) NSError* error;
 
 @end
@@ -33,26 +32,12 @@ static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
     return self;
 }
 
-- (nullable instancetype)initWithFile:(NSInteger)fileDescriptor
-{
-    self = [super init];
-    if (self) {
-        _fileDescriptor = fileDescriptor;
-    }
-    return self;
-}
-
 - (void)encodeUInt32:(uint32_t)intv forKey:(NSString *)key
 {
     NSString* keypath = [kHeaderNamePrefix stringByAppendingString:key];
     int res = setxattr([self.filePath UTF8String], [keypath UTF8String], &intv, sizeof(intv), 0, 0);
     if (res == SPTPersistentCacheHeaderInvalidResult && !self.error) {
-        //        const int errorNumber = errno;
-        //        NSString *errorDescription = @(strerror(errorNumber));
-        //        self.error = [NSError errorWithDomain:SPTPersistentCacheErrorDomain
-        //                                         code:errorNumber
-        //                                     userInfo:@{ NSLocalizedDescriptionKey: errorDescription }];
-        self.error = [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorInternalInconsistency];
+        self.error = [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorFileAttributeOperationFail];
     }
 }
 
@@ -61,12 +46,7 @@ static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
     NSString* keypath = [kHeaderNamePrefix stringByAppendingString:key];
     int res = setxattr([self.filePath UTF8String], [keypath UTF8String], &intv, sizeof(intv), 0, 0);
     if (res == SPTPersistentCacheHeaderInvalidResult && !self.error) {
-        //        const int errorNumber = errno;
-        //        NSString *errorDescription = @(strerror(errorNumber));
-        //        self.error = [NSError errorWithDomain:SPTPersistentCacheErrorDomain
-        //                                         code:errorNumber
-        //                                     userInfo:@{ NSLocalizedDescriptionKey: errorDescription }];
-        self.error = [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorInternalInconsistency];
+        self.error = [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorFileAttributeOperationFail];
     }
 }
 
@@ -76,12 +56,7 @@ static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
     uint32_t intv = 0;
     ssize_t size = getxattr([self.filePath UTF8String], [keypath UTF8String], &intv, sizeof(intv), 0, 0);
     if (size == SPTPersistentCacheHeaderInvalidResult && !self.error) {
-        //        const int errorNumber = errno;
-        //        NSString *errorDescription = @(strerror(errorNumber));
-        //        self.error = [NSError errorWithDomain:SPTPersistentCacheErrorDomain
-        //                                         code:errorNumber
-        //                                     userInfo:@{ NSLocalizedDescriptionKey: errorDescription }];
-        self.error = [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorInternalInconsistency];
+        self.error = [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorFileAttributeOperationFail];
     }
     return intv;
 }
@@ -92,12 +67,7 @@ static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
     uint64_t intv = 0;
     ssize_t size = getxattr([self.filePath UTF8String], [keypath UTF8String], &intv, sizeof(intv), 0, 0);
     if (size == SPTPersistentCacheHeaderInvalidResult && !self.error) {
-//        const int errorNumber = errno;
-//        NSString *errorDescription = @(strerror(errorNumber));
-//        self.error = [NSError errorWithDomain:SPTPersistentCacheErrorDomain
-//                                         code:errorNumber
-//                                     userInfo:@{ NSLocalizedDescriptionKey: errorDescription }];
-        self.error = [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorInternalInconsistency];
+        self.error = [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorFileAttributeOperationFail];
     }
     return intv;
 }
@@ -108,27 +78,22 @@ static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
 
 @implementation SPTPersistentCacheFileAttributesArchiver
 
-+ (void)archivedCacheRecordHeader:(NSObject <SPTPersistentCacheFileAttributesCoding>*)header toFile:(NSInteger)fileDescriptor
++ (BOOL)archivedCacheRecordHeader:(SPTPersistentCacheRecordHeader*)header toFileAtPath:(NSString*)filePath error:(NSError * __autoreleasing *)error
 {
-    SPTPersistentCacheFileAttributesCoder* coder = [[SPTPersistentCacheFileAttributesCoder alloc] initWithFile:fileDescriptor];
+    SPTPersistentCacheFileAttributesCoder* coder = [[SPTPersistentCacheFileAttributesCoder alloc] initWithFilePath:filePath];
     [header encodeWithCoder:coder];
+    if (error) {
+        *error = coder.error;
+    }
+    return coder.error == nil;
 }
 
-+ (void)archivedCacheRecordHeader:(NSObject <SPTPersistentCacheFileAttributesCoding>*)header toFileWithPath:(NSString*)filepath
++ (SPTPersistentCacheRecordHeader*)unarchivedCacheRecordHeaderFromFileAtPath:(NSString*)filePath error:(NSError * __autoreleasing *)error
 {
-    SPTPersistentCacheFileAttributesCoder* coder = [[SPTPersistentCacheFileAttributesCoder alloc] initWithFilePath:filepath];
-    [header encodeWithCoder:coder];
-}
-
-+ (SPTPersistentCacheRecordHeader*)unarchivedCacheRecordHeaderFromFile:(NSInteger)fileDescriptor
-{
-    SPTPersistentCacheFileAttributesCoder* coder = [[SPTPersistentCacheFileAttributesCoder alloc] initWithFile:fileDescriptor];
-    return [[SPTPersistentCacheRecordHeader alloc] initWithCoder:coder];
-}
-
-+ (SPTPersistentCacheRecordHeader*)unarchivedCacheRecordHeaderFromFileWithPath:(NSString*)filepath
-{
-    SPTPersistentCacheFileAttributesCoder* coder = [[SPTPersistentCacheFileAttributesCoder alloc] initWithFilePath:filepath];
+    SPTPersistentCacheFileAttributesCoder* coder = [[SPTPersistentCacheFileAttributesCoder alloc] initWithFilePath:filePath];
+    if (error) {
+        *error = coder.error;
+    }
     return [[SPTPersistentCacheRecordHeader alloc] initWithCoder:coder];
 }
 

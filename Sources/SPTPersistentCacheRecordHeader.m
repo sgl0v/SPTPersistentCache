@@ -14,7 +14,17 @@
 {
     self = [super init];
     if (self) {
-
+        _refCount = header.refCount;
+        _reserved1 = header.reserved1;
+        _ttl = header.ttl;
+        _updateTimeSec = header.updateTimeSec;
+        _payloadSizeBytes = header.payloadSizeBytes;
+        _reserved2 = header.reserved2;
+        _reserved3 = header.reserved3;
+        _reserved4 = header.reserved4;
+        _flags = header.flags;
+        _crc = header.crc;
+        _revision = SPTPersistentCacheRecordHeaderRevisionLegacy;
     }
     return self;
 }

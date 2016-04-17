@@ -26,7 +26,6 @@ NS_ASSUME_NONNULL_BEGIN
 + (nullable instancetype)new NS_UNAVAILABLE;
 
 - (nullable instancetype)initWithFilePath:(NSString*)filePath;
-- (nullable instancetype)initWithFile:(NSInteger)fileDescriptor;
 
 - (void)encodeUInt32:(uint32_t)intv forKey:(NSString *)key;
 - (void)encodeUInt64:(uint64_t)intv forKey:(NSString *)key;
@@ -38,11 +37,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface SPTPersistentCacheFileAttributesArchiver : NSObject
 
-+ (void)archivedCacheRecordHeader:(SPTPersistentCacheRecordHeader*)header toFile:(NSInteger)fileDescriptor;
-+ (void)archivedCacheRecordHeader:(SPTPersistentCacheRecordHeader*)header toFileWithPath:(NSString*)filepath;
-
-+ (nullable SPTPersistentCacheRecordHeader*)unarchivedCacheRecordHeaderFromFile:(NSInteger)fileDescriptor;
-+ (nullable SPTPersistentCacheRecordHeader*)unarchivedCacheRecordHeaderFromFileWithPath:(NSString*)filepath;
++ (BOOL)archivedCacheRecordHeader:(SPTPersistentCacheRecordHeader*)header toFileAtPath:(NSString*)filePath error:(NSError * __autoreleasing *)error;
++ (nullable SPTPersistentCacheRecordHeader*)unarchivedCacheRecordHeaderFromFileAtPath:(NSString*)filePath error:(NSError * __autoreleasing *)error;
 
 @end
 

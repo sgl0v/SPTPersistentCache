@@ -41,7 +41,6 @@
 		9C9E70731C78D5AA00E1CBE6 /* SPTPersistentCacheObjectDescriptionTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C9E70721C78D5AA00E1CBE6 /* SPTPersistentCacheObjectDescriptionTests.m */; };
 		9C9E70761C78FD9700E1CBE6 /* SPTPersistentCacheObjectDescriptionStyleValidator.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C9E70751C78FD9700E1CBE6 /* SPTPersistentCacheObjectDescriptionStyleValidator.m */; };
 		9C9E70781C790ED900E1CBE6 /* SPTPersistentCacheRecordTests.m in Sources */ = {isa = PBXBuildFile; fileRef = C4B4148B1C6A01970099FECD /* SPTPersistentCacheRecordTests.m */; };
-		B6185B051CC90DD600607178 /* NSURL+ExtendedFileAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = B6185B041CC90DD600607178 /* NSURL+ExtendedFileAttributes.m */; };
 		B6B060DF1CC7D1D200E61B8E /* SPTPersistentCacheRecordHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = B6B060DE1CC7D1D200E61B8E /* SPTPersistentCacheRecordHeader.m */; };
 		C41237081C6A29FB00C1E9B8 /* SPTPersistentCacheGarbageCollectorTests.m in Sources */ = {isa = PBXBuildFile; fileRef = C41237071C6A29FB00C1E9B8 /* SPTPersistentCacheGarbageCollectorTests.m */; };
 		C413BA011C71CBBA002D41FB /* SPTPersistentCacheHeaderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = C413BA001C71CBBA002D41FB /* SPTPersistentCacheHeaderTests.m */; };
@@ -137,8 +136,6 @@
 		9C9E70721C78D5AA00E1CBE6 /* SPTPersistentCacheObjectDescriptionTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPTPersistentCacheObjectDescriptionTests.m; sourceTree = "<group>"; };
 		9C9E70741C78FD9700E1CBE6 /* SPTPersistentCacheObjectDescriptionStyleValidator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPTPersistentCacheObjectDescriptionStyleValidator.h; sourceTree = "<group>"; };
 		9C9E70751C78FD9700E1CBE6 /* SPTPersistentCacheObjectDescriptionStyleValidator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPTPersistentCacheObjectDescriptionStyleValidator.m; sourceTree = "<group>"; };
-		B6185B031CC90DD600607178 /* NSURL+ExtendedFileAttributes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSURL+ExtendedFileAttributes.h"; path = "Categories/NSURL+ExtendedFileAttributes.h"; sourceTree = "<group>"; };
-		B6185B041CC90DD600607178 /* NSURL+ExtendedFileAttributes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSURL+ExtendedFileAttributes.m"; path = "Categories/NSURL+ExtendedFileAttributes.m"; sourceTree = "<group>"; };
 		B6B060DD1CC7D1D200E61B8E /* SPTPersistentCacheRecordHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPTPersistentCacheRecordHeader.h; sourceTree = "<group>"; };
 		B6B060DE1CC7D1D200E61B8E /* SPTPersistentCacheRecordHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPTPersistentCacheRecordHeader.m; sourceTree = "<group>"; };
 		C41237071C6A29FB00C1E9B8 /* SPTPersistentCacheGarbageCollectorTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPTPersistentCacheGarbageCollectorTests.m; sourceTree = "<group>"; };
@@ -337,8 +334,6 @@
 			children = (
 				C413BA031C71E1A0002D41FB /* NSError+SPTPersistentCacheDomainErrors.h */,
 				C413BA041C71E1A0002D41FB /* NSError+SPTPersistentCacheDomainErrors.m */,
-				B6185B031CC90DD600607178 /* NSURL+ExtendedFileAttributes.h */,
-				B6185B041CC90DD600607178 /* NSURL+ExtendedFileAttributes.m */,
 			);
 			name = Categories;
 			sourceTree = "<group>";
@@ -464,7 +459,6 @@
 				696CD78B1C4707E20071DD18 /* SPTPersistentCache.m in Sources */,
 				0595F0B01C5009800052328B /* SPTPersistentCacheResponse.m in Sources */,
 				B6B060DF1CC7D1D200E61B8E /* SPTPersistentCacheRecordHeader.m in Sources */,
-				B6185B051CC90DD600607178 /* NSURL+ExtendedFileAttributes.m in Sources */,
 				050076B01C7A3137000819B5 /* SPTPersistentCachePosixWrapperMock.m in Sources */,
 				050076AD1C7A2FF7000819B5 /* SPTPersistentCachePosixWrapper.m in Sources */,
 				696CD78C1C4707E20071DD18 /* SPTPersistentCacheOptions.m in Sources */,

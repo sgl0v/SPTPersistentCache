@@ -12,6 +12,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef NS_ENUM(NSUInteger, SPTPersistentCacheRecordHeaderRevision) {
+    SPTPersistentCacheRecordHeaderRevisionLegacy    = 0,
+    SPTPersistentCacheRecordHeaderRevision1         = 1
+};
+
 /**
  * The record header making up the front of the file index
  */
