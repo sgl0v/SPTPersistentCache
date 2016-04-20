@@ -149,13 +149,12 @@ static NSString* const SPTCacheRecordFileName = @"cache.record";
 - (void)testSPTPersistentCacheGetHeaderFromFileWithPathLegacy
 {
     // GIVEN
-    SPTPersistentCacheRecordHeader legacyHeader = [self dummyHeader];
-    NSData* payload = [[NSMutableData dataWithLength:legacyHeader.payloadSizeBytes] copy];
-    NSMutableData* rawData = [NSMutableData dataWithBytes:&legacyHeader length:SPTPersistentCacheRecordHeaderSize];
-    [rawData appendData:payload];
-    // create a record with legacy header (saved to the file with a payload).
     NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:SPTCacheRecordFileName];
     [self removeFileAtPath:filePath];
+    SPTPersistentCacheRecordHeader header = [self dummyHeader];
+    NSData* payload = [[NSMutableData dataWithLength:header.payloadSizeBytes] copy];
+    NSMutableData* rawData = [NSMutableData dataWithBytes:&header length:SPTPersistentCacheRecordHeaderSize];
+    [rawData appendData:payload];
     XCTAssertTrue([[NSFileManager defaultManager] createFileAtPath:filePath contents:rawData attributes:nil]);
 
     // WHEN
@@ -164,18 +163,18 @@ static NSString* const SPTCacheRecordFileName = @"cache.record";
 
     // THEN
     XCTAssertNil(error);
-    XCTAssertEqual(legacyHeader.reserved1, loadedHeader.reserved1);
-    XCTAssertEqual(legacyHeader.reserved2, loadedHeader.reserved2);
-    XCTAssertEqual(legacyHeader.reserved3, loadedHeader.reserved3);
-    XCTAssertEqual(legacyHeader.reserved4, loadedHeader.reserved4);
-    XCTAssertEqual(legacyHeader.flags, loadedHeader.flags);
-    XCTAssertEqual(legacyHeader.magic, loadedHeader.magic);
-    XCTAssertEqual(legacyHeader.headerSize, loadedHeader.headerSize);
-    XCTAssertEqual(legacyHeader.refCount, loadedHeader.refCount);
-    XCTAssertEqual(legacyHeader.ttl, loadedHeader.ttl);
-    XCTAssertEqual(legacyHeader.payloadSizeBytes, loadedHeader.payloadSizeBytes);
-    XCTAssertEqual(legacyHeader.updateTimeSec, loadedHeader.updateTimeSec);
-    XCTAssertEqual(legacyHeader.crc, loadedHeader.crc);
+    XCTAssertEqual(header.reserved1, loadedHeader.reserved1);
+    XCTAssertEqual(header.reserved2, loadedHeader.reserved2);
+    XCTAssertEqual(header.reserved3, loadedHeader.reserved3);
+    XCTAssertEqual(header.reserved4, loadedHeader.reserved4);
+    XCTAssertEqual(header.flags, loadedHeader.flags);
+    XCTAssertEqual(header.magic, loadedHeader.magic);
+    XCTAssertEqual(header.headerSize, loadedHeader.headerSize);
+    XCTAssertEqual(header.refCount, loadedHeader.refCount);
+    XCTAssertEqual(header.ttl, loadedHeader.ttl);
+    XCTAssertEqual(header.payloadSizeBytes, loadedHeader.payloadSizeBytes);
+    XCTAssertEqual(header.updateTimeSec, loadedHeader.updateTimeSec);
+    XCTAssertEqual(header.crc, loadedHeader.crc);
 
     [self removeFileAtPath:filePath];
 }
