@@ -38,7 +38,7 @@ typedef NS_ENUM(NSUInteger, SPTPersistentCacheRecordHeaderRevision) {
 - (nullable instancetype)init NS_UNAVAILABLE;
 + (nullable instancetype)new NS_UNAVAILABLE;
 
-- (nullable instancetype)initWithLegacyHeader:(SPTPersistentCacheRecordLegacyHeader)header;
+- (nullable instancetype)initWithLegacyHeader:(SPTPersistentCacheRecordLegacyHeader*)header;
 
 @end
 
