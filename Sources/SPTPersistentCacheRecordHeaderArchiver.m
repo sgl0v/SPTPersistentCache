@@ -17,7 +17,7 @@ static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
 @interface SPTPersistentCacheFileAttributesCoder ()
 
 @property (nonatomic, copy) NSString* filePath;
-@property (nonatomic, strong) NSError* error;
+@property (nonatomic, assign) BOOL didFail;
 
 @end
 
@@ -36,18 +36,14 @@ static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
 {
     NSString* keypath = [kHeaderNamePrefix stringByAppendingString:key];
     int res = setxattr([self.filePath UTF8String], [keypath UTF8String], &intv, sizeof(intv), 0, 0);
-    if (res == SPTPersistentCacheHeaderInvalidResult && !self.error) {
-        self.error = [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorFileAttributeOperationFail];
-    }
+    self.didFail = self.didFail || res == SPTPersistentCacheHeaderInvalidResult;
 }
 
 - (void)encodeUInt64:(uint64_t)intv forKey:(NSString *)key
 {
     NSString* keypath = [kHeaderNamePrefix stringByAppendingString:key];
     int res = setxattr([self.filePath UTF8String], [keypath UTF8String], &intv, sizeof(intv), 0, 0);
-    if (res == SPTPersistentCacheHeaderInvalidResult && !self.error) {
-        self.error = [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorFileAttributeOperationFail];
-    }
+    self.didFail = self.didFail || res == SPTPersistentCacheHeaderInvalidResult;
 }
 
 - (uint32_t)decodeUInt32ForKey:(NSString *)key
@@ -55,9 +51,7 @@ static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
     NSString* keypath = [kHeaderNamePrefix stringByAppendingString:key];
     uint32_t intv = 0;
     ssize_t size = getxattr([self.filePath UTF8String], [keypath UTF8String], &intv, sizeof(intv), 0, 0);
-    if (size == SPTPersistentCacheHeaderInvalidResult && !self.error) {
-        self.error = [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorFileAttributeOperationFail];
-    }
+    self.didFail = self.didFail || size == SPTPersistentCacheHeaderInvalidResult;
     return intv;
 }
 
@@ -66,35 +60,26 @@ static NSString* const kHeaderNamePrefix = @"com.spotify.cache.";
     NSString* keypath = [kHeaderNamePrefix stringByAppendingString:key];
     uint64_t intv = 0;
     ssize_t size = getxattr([self.filePath UTF8String], [keypath UTF8String], &intv, sizeof(intv), 0, 0);
-    if (size == SPTPersistentCacheHeaderInvalidResult && !self.error) {
-        self.error = [NSError spt_persistentDataCacheErrorWithCode:SPTPersistentCacheLoadingErrorFileAttributeOperationFail];
-    }
+    self.didFail = self.didFail || size == SPTPersistentCacheHeaderInvalidResult;
     return intv;
 }
 
 @end
 
-
-
 @implementation SPTPersistentCacheFileAttributesArchiver
 
-+ (BOOL)archivedCacheRecordHeader:(SPTPersistentCacheRecordHeader*)header toFileAtPath:(NSString*)filePath error:(NSError * __autoreleasing *)error
++ (BOOL)archivedCacheRecordHeader:(SPTPersistentCacheRecordHeader*)header toFileAtPath:(NSString*)filePath
 {
     SPTPersistentCacheFileAttributesCoder* coder = [[SPTPersistentCacheFileAttributesCoder alloc] initWithFilePath:filePath];
     [header encodeWithCoder:coder];
-    if (error) {
-        *error = coder.error;
-    }
-    return coder.error == nil;
+    return !coder.didFail;
 }
 
-+ (SPTPersistentCacheRecordHeader*)unarchivedCacheRecordHeaderFromFileAtPath:(NSString*)filePath error:(NSError * __autoreleasing *)error
++ (SPTPersistentCacheRecordHeader*)unarchivedCacheRecordHeaderFromFileAtPath:(NSString*)filePath
 {
-    SPTPersistentCacheFileAttributesCoder* coder = [[SPTPersistentCacheFileAttributesCoder alloc] initWithFilePath:filePath];
-    if (error) {
-        *error = coder.error;
-    }
-    return [[SPTPersistentCacheRecordHeader alloc] initWithCoder:coder];
+    SPTPersistentCacheFileAttributesCoder* decoder = [[SPTPersistentCacheFileAttributesCoder alloc] initWithFilePath:filePath];
+    SPTPersistentCacheRecordHeader* header [[SPTPersistentCacheRecordHeader alloc] initWithCoder:decoder];
+    return decoder.didFail ? nil : header;
 }
 
 @end
