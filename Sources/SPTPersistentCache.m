@@ -33,7 +33,6 @@
 #import "SPTPersistentCachePosixWrapper.h"
 #import "SPTPersistentCacheRecordHeaderArchiver.h"
 #import "SPTPersistentCacheRecordHeader.h"
-#import "SPTPersistentCacheRecordRecordHeader.h"
 
 #include <sys/stat.h>
 
@@ -550,7 +549,7 @@ static const uint64_t SPTPersistentCacheTTLUpperBoundInSec = 86400 * 31 * 2;
         [self dispatchError:error result:SPTPersistentCacheResponseCodeOperationError callback:callback onQueue:queue];
     } else {
         const NSUInteger payloadLength = [data length];
-        SPTPersistentCacheRecordRecordHeader *header = [[SPTPersistentCacheRecordRecordHeader alloc] initWithTTL:ttl payloadSize:payloadLength updateTime:spt_uint64rint(self.currentDateTimeInterval) isLocked:isLocked];
+        SPTPersistentCacheRecordHeader *header = [[SPTPersistentCacheRecordHeader alloc] initWithTTL:ttl payloadSize:payloadLength updateTime:spt_uint64rint(self.currentDateTimeInterval) isLocked:isLocked];
         NSError* headerSetError = nil;
         [self saveHeader:header toFileAtPath:filePath error:&headerSetError];
         if (headerSetError != nil) {

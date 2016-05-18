@@ -506,6 +506,20 @@
 					"$(inherited)",
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
+				WARNING_CFLAGS = (
+					"-Weverything",
+					"-Wno-error=deprecated",
+					"-Wno-objc-missing-property-synthesis",
+					"-Wno-gnu-conditional-omitted-operand",
+					"-Wno-gnu",
+					"-Wno-documentation-unknown-command",
+					"-Wno-reserved-id-macro",
+					"-Wno-auto-import",
+					"-Wno-missing-variable-declarations",
+					"-Wno-c++98-compat",
+					"-Werror",
+					"-Wno-direct-ivar-access",
+				);
 			};
 			name = Debug;
 		};
@@ -520,6 +534,20 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				VALIDATE_PRODUCT = YES;
+				WARNING_CFLAGS = (
+					"-Weverything",
+					"-Wno-error=deprecated",
+					"-Wno-objc-missing-property-synthesis",
+					"-Wno-gnu-conditional-omitted-operand",
+					"-Wno-gnu",
+					"-Wno-documentation-unknown-command",
+					"-Wno-reserved-id-macro",
+					"-Wno-auto-import",
+					"-Wno-missing-variable-declarations",
+					"-Wno-c++98-compat",
+					"-Werror",
+					"-Wno-direct-ivar-access",
+				);
 			};
 			name = Release;
 		};
