@@ -21,6 +21,7 @@
 #import <XCTest/XCTest.h>
 
 #import "SPTPersistentCacheHeader.h"
+#import "SPTPersistentCacheRecordHeader.h"
 #import <SPTPersistentCache/SPTPersistentCache.h>
 #import "SPTPersistentCacheTypeUtilities.h"
 
@@ -83,19 +84,9 @@ static NSString* const SPTCacheRecordFileName = @"cache.record";
     uint64_t updateTime = spt_uint64rint([[NSDate date] timeIntervalSince1970]);
     BOOL isLocked = YES;
     
+    SPTPersistentCacheRecordHeader *header = [[SPTPersistentCacheRecordHeader alloc] initWithTTL:ttl payloadSize:payloadSize updateTime:updateTime isLocked:isLocked];
     
-    SPTPersistentCacheRecordLegacyHeader header = SPTPersistentCacheRecordHeaderMake(ttl,
-                                                                               payloadSize,
-                                                                               updateTime,
-                                                                               isLocked);
-    
-    XCTAssertEqual(header.reserved1, (uint64_t)0);
-    XCTAssertEqual(header.reserved2, (uint64_t)0);
-    XCTAssertEqual(header.reserved3, (uint64_t)0);
-    XCTAssertEqual(header.reserved4, (uint64_t)0);
     XCTAssertEqual(header.flags, (uint32_t)0);
-    XCTAssertEqual(header.magic, SPTPersistentCacheMagicValue);
-    XCTAssertEqual(header.headerSize, (uint32_t)SPTPersistentCacheRecordHeaderSize);
     XCTAssertEqual(!!header.refCount, isLocked);
     XCTAssertEqual(header.ttl, ttl);
     XCTAssertEqual(header.payloadSizeBytes, payloadSize);

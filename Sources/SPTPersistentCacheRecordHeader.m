@@ -42,6 +42,18 @@ const SPTPersistentCacheRecordHeaderRevision SPTPersistentCacheRecordHeaderCurre
     return self;
 }
 
+- (void)setUpdateTimeSec:(uint64_t)updateTimeSec
+{
+    _updateTimeSec = updateTimeSec;
+    _crc = [self calculateCRC32];
+}
+
+- (void)setRefCount:(uint32_t)refCount
+{
+    _refCount = refCount;
+    _crc = [self calculateCRC32];
+}
+
 #pragma mark - SPTPersistentCacheFileAttributesCoding
 
 - (void)encodeWithCoder:(SPTPersistentCacheFileAttributesCoder *)aCoder
@@ -66,6 +78,14 @@ const SPTPersistentCacheRecordHeaderRevision SPTPersistentCacheRecordHeaderCurre
         _flags = [aDecoder decodeUInt32ForKey:NSStringFromSelector(@selector(flags))];
         _crc = [aDecoder decodeUInt32ForKey:NSStringFromSelector(@selector(crc))];
         _revision = [aDecoder decodeUInt32ForKey:NSStringFromSelector(@selector(revision))];
+        if (_crc != [self calculateCRC32]) {
+            return nil;
+        }
+        if (_revision != SPTPersistentCacheRecordHeaderCurrentRevision) {
+            // Provide migration for upcoming versions!
+            _revision = SPTPersistentCacheRecordHeaderCurrentRevision;
+            _crc = [self calculateCRC32];
+        }
     }
     return self;
 }

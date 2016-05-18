@@ -29,18 +29,21 @@ FOUNDATION_EXPORT const SPTPersistentCacheRecordHeaderRevision SPTPersistentCach
 
 // Version 1:
 @property (nonatomic, assign) uint32_t refCount;
-@property (nonatomic, assign) uint64_t ttl;
+@property (nonatomic, assign, readonly) uint64_t ttl;
 @property (nonatomic, assign) uint64_t updateTimeSec; // Time of last update i.e. creation or access. uses unix time scale.
-@property (nonatomic, assign) uint64_t payloadSizeBytes;
-@property (nonatomic, assign) uint32_t flags; // See SPTPersistentRecordHeaderFlags
+@property (nonatomic, assign, readonly) uint64_t payloadSizeBytes;
+@property (nonatomic, assign, readonly) uint32_t flags; // See SPTPersistentRecordHeaderFlags
 @property (nonatomic, assign, readonly) uint32_t crc;
-@property (nonatomic, assign) uint32_t revision;
+@property (nonatomic, assign, readonly) uint32_t revision;
 
 - (nullable instancetype)init NS_UNAVAILABLE;
 + (nullable instancetype)new NS_UNAVAILABLE;
 
 - (nullable instancetype)initWithLegacyHeader:(SPTPersistentCacheRecordLegacyHeader*)header;
 
+/**
+ * Creates a record header from a supply of parameters.
+ */
 - (instancetype)initWithTTL:(uint64_t)ttl payloadSize:(uint64_t)payloadSize updateTime:(uint64_t)updateTime isLocked:(BOOL)isLocked;
 
 @end
